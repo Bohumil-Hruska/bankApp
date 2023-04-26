@@ -1,0 +1,25 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="/static/style.css" type="text/css"> <!--Odkaz na vlastní css styly-->
+</head>
+<div class="container">
+    <div class="logo">Ověřovací formulář</div>
+    <div class="login-item">
+        <form action="" method="post" class="form form-login">
+            <div class="form-field">
+                <label class="lock" for="login-password"><span class="hidden">Ověřovací kod</span></label>
+                <input name="login-code" type="text" class="form-input" placeholder="Ověřovací kod" required>
+            </div>
+
+            <div class="form-field">
+                <input type="submit" value="Ověřit">
+            </div>
+        </form>
+        {% for mesg in get_flashed_messages() %}
+        <h1>{{ mesg }}</h1>
+        {% endfor %}
+    </div>
+</div>
+
+</html>
