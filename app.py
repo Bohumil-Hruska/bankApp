@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for,session
+from flask import Flask, render_template, request, redirect, url_for,session, flash
 from flaskext.mysql import MySQL
 import random
 import smtplib
@@ -33,18 +33,62 @@ def verifyUser(email,password):
 
         if  len(row) != 0:
             if str(row[4])==password:
+                session['name'] = str(row[1]) + " "  + str(row[2])
+                session['email'] = email
                 return True
             else:
                 return False
         else:
             return "Uživatel nenalezen!"
 
-
-
 def addUser(id,name,email,prijmeni,heslo):
     sql = "insert into uzivatel (cisdod,jmeno,prijmeni,email,heslo) values (%s,%s,%s,%s,%s)"
     val = (int(id),name,email,prijmeni,int(heslo))
     cursor.execute(sql,val)
+
+def createAccount(mena):
+    acc_num = random.randint(10000000,99999999)
+    sql = ("SELECT * FROM ucet WHERE cislo = %s")
+    val = acc_num
+    cursor.execute(sql,val)
+    row = cursor.fetchall()
+    if row:
+        print('ucet nepridan')
+    else:
+        print('ucet asi pridan')
+        sql = "insert into ucet (id,cislo,vlastnik,mena,zustatek) values (%s,%s,%s,%s,%s)"
+        val = (int(acc_num),int(acc_num),session['email'],mena,int(0))
+        cursor.execute(sql,val)
+        conn.commit()
+
+def withdrawMoney(vyber):
+    session['accountNum'] = 26465341
+    sql = ("SELECT zustatek FROM ucet WHERE cislo = %s")
+    val = session['accountNum']
+    cursor.execute(sql,val)
+    row = cursor.fetchall()[0]
+
+    zustatek =  float(row[0])- float(vyber)
+    if zustatek < 0:
+        print("nic")
+    else:
+        sql = ("UPDATE ucet SET zustatek = %s WHERE cislo = %s")
+        val = (zustatek, session['accountNum'])
+        cursor.execute(sql,val)
+        conn.commit()
+
+def addMoney(vklad):
+    session['accountNum'] = 26465341
+    sql = ("SELECT zustatek FROM ucet WHERE cislo = %s")
+    val = session['accountNum']
+    cursor.execute(sql,val)
+    row = cursor.fetchall()[0]
+
+    zustatek = float(row[0])+float(vklad)
+    sql = ("UPDATE ucet SET zustatek = %s WHERE cislo = %s")
+    val = (zustatek, session['accountNum'])
+    cursor.execute(sql,val)
+    conn.commit()
 
 app = Flask(__name__)
 app.secret_key = "key"
@@ -62,24 +106,47 @@ def login():
     email = request.form['login-username']
     password = request.form['login-password']
     if(verifyUser(email,password)):
-        code = send_verification(email)
-        session['code'] = code
-        return redirect(url_for("verification"))
+        #code = send_verification(email)
+        #session['code'] = code
+        return redirect(url_for("home"))
     else:
-        return "Špatné přihlášení!"
+        flash("Špatné přihlašovací údaje!")
+        return redirect(url_for("login"))
+
 
 @app.route('/verification',)
 def verification():
     return render_template('verification.html')
+
+@app.route('/logout',)
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+@app.route('/createNewAccount',methods=['GET','POST'])
+def createNewAccount():
+    createAccount(request.form['mena'])
+    return redirect('/home')
+
+@app.route('/withdraw',methods=['GET','POST'])
+def withdraw():
+    withdrawMoney(request.form['vyber'])
+    return redirect('/home')
+
+@app.route('/deposit',methods=['GET','POST'])
+def deposit():
+    addMoney(request.form['vklad'])
+    return redirect('/home')
 
 @app.route('/verification',methods=['POST'] )
 def ver():
     if str(session.get('code')) == request.form['login-code']:
         return redirect('/home')
     else:
-        return 1
+        flash("Špatně zadaný kod!")
+        return redirect(url_for("verification"))
 
-@app.route('/home')
+@app.route('/home',methods=['GET','POST'])
 def home():
     return render_template('index.html')
 

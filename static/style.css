@@ -27,6 +27,12 @@ background: linear-gradient(to top, #16222A , #3A6073); /* W3C, IE 10+/ Edge, Fi
   display: flex;  
   flex-direction: column;
 }
+.top{
+  height: 50px;
+  background-color: #3A3F44;
+  display: flex;
+  width: 100%;
+}
 
 .logo{
   font-family: "museo-slab";  
