@@ -77,14 +77,13 @@ def verifyUser(email,password):#otestovano
         val = email
         cursor.execute(sql,val)
         row = cursor.fetchall()
-        
+        cursor.close()
+        conn.close()
         if  len(row) != 0:
             if str(row[0][4])==hashlib.md5(password.encode()).hexdigest():
                 session['name'] = str(row[0][1]) + " "  + str(row[0][2])
                 session['email'] = email
                 session['userId'] = row[0][0]
-                cursor.close()
-                conn.close()
                 conn = mysql.connect()
                 cursor = conn.cursor()
                 sql = ("SELECT * FROM ucty WHERE ID_uzivatele = %s AND mena='CZK'")
@@ -104,26 +103,37 @@ def verifyUser(email,password):#otestovano
 
 def createAccount(mena,userId,num):#otestovano
     acc_num = num
+    conn = mysql.connect()
+    cursor = conn.cursor()
     sql = ("SELECT * FROM ucty WHERE cislo = %s OR (mena=%s AND ID_uzivatele=%s)")
     val = (acc_num,mena,userId)
     cursor.execute(sql,val)
     row = cursor.fetchall()
+    cursor.close()
+    conn.close()
     if len(row)==0:
+        conn = mysql.connect()
+        cursor = conn.cursor()
         session.pop('_flashes', None)
         sql = "insert into ucty (cislo,ID_uzivatele,mena,zustatek) values (%s,%s,%s,%s)"
         val = (int(acc_num),userId,mena,int(0))
         cursor.execute(sql,val)
         conn.commit()
+        cursor.close()
+        conn.close()
         return True
     else:
         return False
 
 def withdrawMoney(form):
+    conn = mysql.connect()
+    cursor = conn.cursor()
     sql = ("SELECT zustatek FROM ucty WHERE cislo = %s")
     val = session['accountNum']
     cursor.execute(sql,val)
     row = cursor.fetchall()[0]
     cursor.close()
+    conn.close()
     if session['accountType'] == form['mena']:
         zustatek = float(row[0])-float(form['vyber'])
         vyber = float(form['vyber'])
@@ -143,23 +153,33 @@ def withdrawMoney(form):
     if zustatek < 0:
         flash("Nedostatek financí na účtě",'notEnoughMoney')
     else:
+        conn = mysql.connect()
+        cursor = conn.cursor()
         sql = ("UPDATE ucty SET zustatek = %s WHERE cislo = %s")
         val = (zustatek, session['accountNum'])
         session['balance'] = zustatek
         cursor.execute(sql,val)
         conn.commit()
         cursor.close()
+        conn.close()
+        conn = mysql.connect()
+        cursor = conn.cursor()
         sql = ("INSERT INTO platby (ID_odesilajici,ID_prijemce,typ_transakce,castka,datum) VALUES (%s,%s,%s,%s,%s)")
         val = (session['accountNum'],session['accountNum'],'Výběr hotovosti',vyber,datetime.now().strftime("%Y-%m-%d %H:%M"))
         cursor.execute(sql,val)
         conn.commit()
         cursor.close()
+        conn.close()
 
 def addMoney(form):#otestovano
+    conn = mysql.connect()
+    cursor = conn.cursor()
     sql = ("SELECT zustatek FROM ucty WHERE cislo = %s")
     val = session['accountNum']
     cursor.execute(sql,val)
     row = cursor.fetchall()[0]
+    cursor.close()
+    conn.close()
 
     if session['accountType'] == form['mena']:
         zustatek = float(row[0])+float(form['vklad'])
@@ -178,16 +198,24 @@ def addMoney(form):#otestovano
         vklad = float(form['vklad']) * kurz
         zustatek = float(row[0])+vklad
     
+    conn = mysql.connect()
+    cursor = conn.cursor()
     sql = ("UPDATE ucty SET zustatek = %s WHERE cislo = %s")
     val = (zustatek, session['accountNum'])
     session['balance'] = zustatek
     cursor.execute(sql,val)
     conn.commit()
+    cursor.close()
+    conn.close()
 
+    conn = mysql.connect()
+    cursor = conn.cursor()
     sql = ("INSERT INTO platby (ID_odesilajici,ID_prijemce,typ_transakce,castka,datum) VALUES (%s,%s,%s,%s,%s)")
     val = (session['accountNum'],session['accountNum'],'Vklad hotovosti',vklad,datetime.now().strftime("%Y-%m-%d %H:%M"))
     cursor.execute(sql,val)
     conn.commit()
+    cursor.close()
+    conn.close()
 
 def transferMoney(form):
     sql = ("SELECT cislo,zustatek,mena FROM ucty WHERE cislo = %s")
@@ -383,7 +411,7 @@ def login():
         #session['code'] = code
         return redirect(url_for("home"))
     else:
-        flash("Špatné přihlašovací údaje!")
+        flash("Špatné přihlašovací údaje!",'badCred')
         return redirect(url_for("login"))
 
 
@@ -393,11 +421,14 @@ def verification():
 
 @app.route('/showHistory', methods=['GET','POST'])#otestovano
 def showHistory():
+    conn = mysql.connect()
+    cursor = conn.cursor()
     sql = ("SELECT * FROM platby WHERE ID_odesilajici = %s  ORDER BY ID_platby DESC")
     val = session['accountNum']
     cursor.execute(sql,val)
     data = cursor.fetchall()
     cursor.close()
+    conn.close()
     if len(data) == 0:
         data = "Žáadná historie"
     return render_template('history.html',data=data)
@@ -423,10 +454,14 @@ def sendMoney():
 
 @app.route('/switchAccount',methods=['GET','POST'])#otestovano
 def switchAccount():
+    conn = mysql.connect()
+    cursor = conn.cursor()
     sql = ("SELECT * FROM ucty WHERE ID_uzivatele =%s AND mena=%s")
     val = (session['userId'],request.form['account'])
     cursor.execute(sql,val)
     row = cursor.fetchall()[0]
+    cursor.close()
+    conn.close()
     session['accountNum'] = row[0]
     session['accountType'] = row[2]
     session['balance'] = row[3]

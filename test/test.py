@@ -25,6 +25,10 @@ class TestWithdrawMoney(unittest.TestCase):
         self.conn = mysql.connect()
         self.cursor = self.conn.cursor()
 
+    def  tearDown(self):
+        self.cursor.close()
+        self.conn.close()
+
     def test_withdrawSameAccount(self):
         with app.test_request_context('/withdraw', method='POST'):
             self.cursor.execute("UPDATE ucty SET zustatek= 500.00 WHERE cislo = 111")
@@ -36,7 +40,7 @@ class TestWithdrawMoney(unittest.TestCase):
 
             withdrawMoney(form)
 
-            self.assertEqual(250.00, 250.00)
+            self.assertEqual(session['balance'], 250.00)
 
             self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 111")
             self.conn.commit()
@@ -73,6 +77,10 @@ class TestAddMoney(unittest.TestCase):
         self.conn = mysql.connect()
         self.cursor = self.conn.cursor()
 
+    def  tearDown(self):
+        self.cursor.close()
+        self.conn.close()
+
     def test_addMoneyToSameAccount(self):
         with app.test_request_context('/deposit', method='POST'):
             session['accountNum'] = 21
@@ -105,7 +113,6 @@ class TestAddMoney(unittest.TestCase):
 
             self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE (cislo = 31)")
             self.conn.commit()
-            self.conn.close()
 
     def test_addNotCzkToCZK(self):
         with app.test_request_context('/deposit', method='POST'):
@@ -125,7 +132,6 @@ class TestAddMoney(unittest.TestCase):
 
             self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE (cislo = 21)")
             self.conn.commit()
-            self.conn.close()
 
     def test_addMoneyToDifferent(self):
         with app.test_request_context('/deposit', method='POST'):
@@ -145,8 +151,6 @@ class TestAddMoney(unittest.TestCase):
 
             self.cursor.execute("UPDATE ucty SET zustatek= '0.00' WHERE (cislo = 31)")
             self.conn.commit()
-            self.conn.close()
-
 
 class TestHome(unittest.TestCase):
     def test_no_other_acc(self):
@@ -257,6 +261,10 @@ class TestCreateAccount(unittest.TestCase):
         self.conn = mysql.connect()
         self.cursor = self.conn.cursor()
 
+    def tearDown(self) :
+        self.cursor.close()
+        self.conn.close()
+
     def test_create_new_account(self):
         currency = 'USD'
         user_id = 11
@@ -272,7 +280,6 @@ class TestCreateAccount(unittest.TestCase):
 
         self.cursor.execute("DELETE FROM ucty WHERE cislo = 11")
         self.conn.commit()
-        self.conn.close()
 
     def test_create_existing_account(self):
         currency = 'USD'
@@ -290,7 +297,6 @@ class TestCreateAccount(unittest.TestCase):
 
         self.cursor.execute("DELETE FROM ucty WHERE cislo = 10")
         self.conn.commit()
-        self.conn.close()
 #python -m pytest name
 class TestVerifyUser(unittest.TestCase): 
     def test_correct_password(self):
