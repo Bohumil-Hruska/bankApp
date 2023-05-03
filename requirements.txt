@@ -2,3 +2,11 @@ flask
 flask_wtf 
 pytest
 pytest-cov
+coverage
+random
+smtplib
+ssl
+hashlib
+urllib
+email.message
+re
