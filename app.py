@@ -357,10 +357,10 @@ def transferMoney(form):
 
 app = Flask(__name__)
 app.secret_key = "key"
-app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = '123456'
-app.config['MYSQL_DATABASE_DB'] = 'bank'
-app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+app.config['MYSQL_DATABASE_USER'] = 'bea529bd809544'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'a0538c80'
+app.config['MYSQL_DATABASE_DB'] = 'heroku_c2218c80d1e84ad'
+app.config['MYSQL_DATABASE_HOST'] = 'eu-cdbr-west-03.cleardb.net'
 mysql = MySQL(app)
 
 conn = mysql.connect()
