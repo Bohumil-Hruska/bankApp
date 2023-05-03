@@ -74,12 +74,13 @@ def verifyUser(email,password):#otestovano
         val = email
         cursor.execute(sql,val)
         row = cursor.fetchall()
+        
         if  len(row) != 0:
             if str(row[0][4])==hashlib.md5(password.encode()).hexdigest():
                 session['name'] = str(row[0][1]) + " "  + str(row[0][2])
                 session['email'] = email
                 session['userId'] = row[0][0]
-                
+                cursor.close()
                 sql = ("SELECT * FROM ucty WHERE ID_uzivatele = %s AND mena='CZK'")
                 val = int(session['userId'])
                 cursor.execute(sql,val)
@@ -87,6 +88,7 @@ def verifyUser(email,password):#otestovano
                 session['accountNum'] = row[0]
                 session['accountType'] = row[2]
                 session['balance'] = row[3]
+                cursor.close()
                 return True
             else:
                 return False
@@ -114,7 +116,7 @@ def withdrawMoney(form):
     val = session['accountNum']
     cursor.execute(sql,val)
     row = cursor.fetchall()[0]
-
+    cursor.close()
     if session['accountType'] == form['mena']:
         zustatek = float(row[0])-float(form['vyber'])
         vyber = float(form['vyber'])
@@ -131,7 +133,6 @@ def withdrawMoney(form):
         date, kurz = current_course(session['accountType'],form['mena'])
         vyber = float(form['vyber'])* kurz
         zustatek = float(row[0])-vyber
-
     if zustatek < 0:
         flash("Nedostatek financí na účtě",'notEnoughMoney')
     else:
@@ -140,10 +141,12 @@ def withdrawMoney(form):
         session['balance'] = zustatek
         cursor.execute(sql,val)
         conn.commit()
+        cursor.close()
         sql = ("INSERT INTO platby (ID_odesilajici,ID_prijemce,typ_transakce,castka,datum) VALUES (%s,%s,%s,%s,%s)")
         val = (session['accountNum'],session['accountNum'],'Výběr hotovosti',vyber,datetime.now().strftime("%Y-%m-%d %H:%M"))
         cursor.execute(sql,val)
         conn.commit()
+        cursor.close()
 
 def addMoney(form):#otestovano
     sql = ("SELECT zustatek FROM ucty WHERE cislo = %s")
