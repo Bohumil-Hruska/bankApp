@@ -121,7 +121,9 @@
             <form action="" method="post">
                 <input type="text" name="login-username" placeholder="Uživatelské jméno">
                 <input type="password" name="login-password" placeholder="Heslo">
-                <h1>{{ msg }}</h1>
+                {% for mesg in get_flashed_messages(category_filter=['badCred']) %}
+                <span>{{ mesg }}</span>
+                {% endfor %}
                 <button>Přihlásit se</button>
             </form>
         </div>
