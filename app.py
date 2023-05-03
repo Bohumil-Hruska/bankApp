@@ -498,7 +498,7 @@ def login():
     if(verifyUser(email,password)):
         code = send_verification(email)
         session['code'] = code
-        return redirect(url_for("home"))
+        return redirect(url_for("verification"))
     else:
         flash("Špatné přihlašovací údaje!",'badCred')
         return redirect(url_for("login"))
