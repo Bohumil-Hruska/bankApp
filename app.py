@@ -70,6 +70,9 @@ def send_verification(email):#otestovano
     return verification_code
 
 def verifyUser(email,password):#otestovano
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
         sql = ("SELECT * FROM uzivatele WHERE email = %s")
         val = email
         cursor.execute(sql,val)
@@ -81,6 +84,9 @@ def verifyUser(email,password):#otestovano
                 session['email'] = email
                 session['userId'] = row[0][0]
                 cursor.close()
+                conn.close()
+                conn = mysql.connect()
+                cursor = conn.cursor()
                 sql = ("SELECT * FROM ucty WHERE ID_uzivatele = %s AND mena='CZK'")
                 val = int(session['userId'])
                 cursor.execute(sql,val)
@@ -89,6 +95,7 @@ def verifyUser(email,password):#otestovano
                 session['accountType'] = row[2]
                 session['balance'] = row[3]
                 cursor.close()
+                conn.close()
                 return True
             else:
                 return False
@@ -366,8 +373,6 @@ app.config['MYSQL_DATABASE_DB'] = 'heroku_c2218c80d1e84ad'
 app.config['MYSQL_DATABASE_HOST'] = 'eu-cdbr-west-03.cleardb.net'
 mysql = MySQL(app)
 
-conn = mysql.connect()
-cursor = conn.cursor()
 
 @app.route('/', methods=['POST'])
 def login():
@@ -447,11 +452,14 @@ def ver():
 
 @app.route('/home',methods=['GET','POST'])#otestovano
 def home():
+    conn = mysql.connect()
+    cursor = conn.cursor()
     sql = ("SELECT * FROM ucty WHERE ID_uzivatele = %s AND NOT mena=%s")
     val = (session['userId'],session['accountType'])
     cursor.execute(sql,val)
     data = cursor.fetchall()
     cursor.close()
+    conn.close()
     if len(data) == 0:
         data = "Žádné další účty"
     return render_template('index.html',data=data)
