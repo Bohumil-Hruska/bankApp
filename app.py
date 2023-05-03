@@ -125,7 +125,7 @@ def createAccount(mena,userId,num):#otestovano
     else:
         return False
 
-def withdrawMoney(form):
+def withdrawMoney(form):#otestovano
     conn = mysql.connect()
     cursor = conn.cursor()
     sql = ("SELECT zustatek FROM ucty WHERE cislo = %s")
@@ -285,8 +285,7 @@ def transferMoney(form):
                 cursor.close()
                 conn.close()
 
-
-                msg = "Platba byla provedena z účtu: " + str(row[0][0]) + " " + str(form['mena'])
+                msg = "Platba byla provedena z účtu: " + str(session['accountNum']) + " " + str(form['mena'])
                 flash(msg,'notOtherAcc')
             else:
                 flash('Nemáte dostatek financi na provedení platby, přidejte prostředky pro platbu nebo zvolte jiný účet s dostatkem peněz!','notEnoughMoneyTransfer')
@@ -346,7 +345,7 @@ def transferMoney(form):
                 conn.close()
 
 
-                msg = "Platba byla provedena z účtu: " + str(row[0][0]) + " " + str(form['mena'])
+                msg = "Platba byla provedena z účtu: " + str(session['accountNum']) + " " + str(form['mena'])
                 flash(msg,'notOtherAcc')
             else:
                 flash('Nemáte dostatek financi na provedení platby, přidejte prostředky pro platbu nebo zvolte jiný účet s dostatkem peněz!','notEnoughMoneyTransfer')
@@ -416,7 +415,7 @@ def transferMoney(form):
             
 
 
-        elif session['accountType'] != form['mena'] and form['mena'] != data[0][2] and data[0][2] != session['accountType']:
+        elif session['accountType'] != form['mena'] and form['mena'] != data[0][2] and data[0][2] != session['accountType']: #USD ucet, EUR platba, PLN ucet
             sql = ("SELECT cislo,zustatek FROM ucty WHERE mena = %s AND ID_uzivatele = %s")
             val = (form['mena'], session['userId'])
             cursor.execute(sql,val)
@@ -492,7 +491,7 @@ app.config['MYSQL_DATABASE_HOST'] = 'eu-cdbr-west-03.cleardb.net'
 mysql = MySQL(app)
 
 
-@app.route('/', methods=['POST'])
+@app.route('/', methods=['POST'])#otestovano
 def login():
     email = request.form['login-username']
     password = request.form['login-password']
