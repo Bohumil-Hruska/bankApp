@@ -392,6 +392,7 @@ def showHistory():
     val = session['accountNum']
     cursor.execute(sql,val)
     data = cursor.fetchall()
+    cursor.close()
     if len(data) == 0:
         data = "Žáadná historie"
     return render_template('history.html',data=data)
@@ -450,6 +451,7 @@ def home():
     val = (session['userId'],session['accountType'])
     cursor.execute(sql,val)
     data = cursor.fetchall()
+    cursor.close()
     if len(data) == 0:
         data = "Žádné další účty"
     return render_template('index.html',data=data)
