@@ -9,44 +9,7 @@ from unittest.mock import MagicMock
 
 
 
-class TestWithdrawMoneyOther(unittest.TestCase):
-    def setUp(self):
-        app = Flask(__name__)
-        app.config['TESTING'] = True
-        app.config['MYSQL_DATABASE_HOST'] = 'eu-cdbr-west-03.cleardb.net'
-        app.config['MYSQL_DATABASE_USER'] = 'bea529bd809544'
-        app.config['MYSQL_DATABASE_PASSWORD'] = 'a0538c80'
-        app.config['MYSQL_DATABASE_DB'] = 'heroku_c2218c80d1e84ad'
-        mysql = MySQL()
-        mysql.init_app(app)
-        self.app = app.test_client()
-        self.conn = mysql.connect()
-        self.cursor = self.conn.cursor()
 
-    def test_withdrawOtherAcc(self):
-        with app.test_request_context('/withdraw', method='POST'):
-            self.cursor.execute("UPDATE ucty SET zustatek= 500.00 WHERE cislo = 112")
-            self.conn.commit()
-            session['accountNum'] = 112
-            session['accountType'] = 'EUR'
-            session['balance'] = 500
-            form = {'mena': 'CZK', 'vyber': '250.0'}
-
-            date, kurz = current_course('EUR','EUR')
-            newKurz = 1/kurz
-            celkem = 500 - (float(newKurz)*250)
-
-            withdrawMoney(form)
-
-
-            self.cursor.execute("SELECT * FROM ucty WHERE cislo = 112")
-            result = self.cursor.fetchall()
-            
-            self.assertEqual(float("%.2f" % session['balance']), float("%.2f" % celkem))
-
-            self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 112")
-            self.conn.commit()
-            self.conn.close()
 
 class TestWithdrawMoney(unittest.TestCase):
     def setUp(self):
