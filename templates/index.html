@@ -3,6 +3,7 @@
 
 <head>
     <title>Bank App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             margin: 0;
@@ -17,7 +18,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 40px;
+            padding: 20px;
         }
 
         #top-menu a {
@@ -40,7 +41,6 @@
             align-items: center;
         }
 
-        /* Boxes */
         .box {
             flex-basis: calc(33.33% - 20px);
             margin: 10px;
@@ -50,6 +50,7 @@
             box-shadow: 2px 2px 5px #ccc;
             text-align: center;
             background-color: #f9f9f9;
+            height: 250px;
         }
 
         .box h2 {
@@ -64,7 +65,7 @@
         }
 
         #send-button {
-            background-color: #007bff;
+            background-color: #000000;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -74,13 +75,126 @@
             transition: background-color 0.3s ease;
         }
 
-        #send-button a{
+        #send-button a {
             text-decoration: none;
             color: white;
         }
 
         #send-button:hover {
-            background-color: #0069d9;
+            background-color: grey;
+        }
+
+        .box {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .box h2 {
+            color: #000000;
+        }
+
+        .box input[type="number"] {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            width: 90%;
+            margin-bottom: 20px;
+        }
+
+        .box select {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+        
+
+        .box button {
+            background-color: #000000;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+        }
+
+        .box button:hover {
+            background-color: grey;
+        }
+
+        /* Responsive styles */
+        @media screen and (max-width: 992px) {
+            #top-menu {
+                padding: 20px;
+            }
+
+            .box {
+                flex-basis: calc(100% - 5px);
+                margin-bottom: 5%;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            #top-menu {
+                padding: 20px;
+            }
+
+            .box {
+                flex-basis: calc(100% - 5px);
+                margin-bottom: 5%;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            #top-menu {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            #top-menu p {
+                margin-bottom: 10px;
+            }
+
+            #main-container {
+                padding: 5px 0;
+            }
+
+            .box {
+                flex-basis: calc(100% - 5px);
+                margin-bottom: 5%;
+            }
+
+            .box input[type="number"],
+            .box select {
+                width: 100%;
+            }
+        }
+
+        @media screen and (max-width: 360px) {
+            .box h2 {
+                font-size: 20px;
+            }
+
+            .box {
+                flex-basis: calc(100% - 5px);
+                margin-bottom: 5%;
+            }
+
+            .box p {
+                font-size: 14px;
+            }
+
+            .box button,
+            #send-button {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
         }
     </style>
 </head>
@@ -88,9 +202,8 @@
 <body>
     <!-- Top menu -->
     <div id="top-menu">
-        <p>Přihlášen jako : {{ session.name }}<br><br><a href="/logout">Odhlásit se</a></p>
-        <p>Bank account: {{ session.accountNum }}<br><br>Zůstatek: {{ session.balance }}</p>
-
+        <p>Přihlášen jako : {{ session.name }}<br><br><a href="/logout"><button id="send-button">Odhlásit se</button></a></p>
+        <p>Bank account: {{ session.accountNum }}<br><br>Zůstatek: {{'%0.2f'| format(session.balance|float)}} {{ session.accountType }}</p>
     </div>
 
     <!-- Main container -->
@@ -99,10 +212,14 @@
         <div class="box">
             <h2>Vklad hotovosti</h2>
             <form action="/deposit" method="post">
-                <div>
-                    <label for="amount-input">Kolik:</label>
-                    <input type="number" name="vklad" id="amount-input" min="1" max="1000000">
-                </div>
+                <input type="number" name="vklad" placeholder="Kolik chcete vložit" id="amount-input" min="1" max="1000000">
+                <br>
+                <select name="mena">
+                    <option {%if session['accountType'] == "CZK"%}  selected  {% endif %} value="CZK" >CZK</option>
+                    <option {%if session['accountType'] == "EUR"%}  selected  {% endif %} value="EUR" >EUR</option>
+                    <option {%if session['accountType'] == "USD"%}  selected  {% endif %} value="USD">USD</option>
+                    <option {%if session['accountType'] == "RUB"%}  selected  {% endif %} value="RUB">RUB</option>
+                </select>
                 <button id="deposit-button">Vložit</button>
             </form>
         </div>
@@ -111,46 +228,93 @@
         <div class="box">
             <h2>Výběr hotovosti</h2>
             <form action="/withdraw" method="post">
-                <div>
-                    <label for="amount-input">Kolik:</label>
-                    <input type="number" name="vyber" id="amount-input" min="1" max="1000000">
-                </div>
-                <button id="withdraw-button">Vybrat</button>
+                <input type="number" name="vyber" placeholder="Kolik chcete vybrat" id="amount-input" min="1" max="1000000">
+                <br>
+                <select name="mena">
+                    <option {%if session['accountType'] == "CZK"%}  selected  {% endif %} value="CZK" >CZK</option>
+                    <option {%if session['accountType'] == "EUR"%}  selected  {% endif %} value="EUR" >EUR</option>
+                    <option {%if session['accountType'] == "USD"%}  selected  {% endif %} value="USD">USD</option>
+                    <option {%if session['accountType'] == "RUB"%}  selected  {% endif %} value="RUB">RUB</option>
+                </select>
+                <button id="deposit-button">Vybrat</button>
             </form>
+            {% for mesg in get_flashed_messages(category_filter=['notEnoughMoney']) %}
+            <span>{{ mesg }}</span>
+            {% endfor %}
         </div>
-
         <!-- Box 3 -->
         <div class="box">
-            <h2>Transfer money</h2>
-            <p>Send or receive money</p>
+            <h2>Historie transakcí</h2>
+            <br>
+            <form action="/showHistory" method="post">
+                <button id="deposit-button">Zobrazit historii</button>
+            </form>
         </div>
 
         <!-- Box 4 -->
         <div class="box">
-            <h2>Pay bills</h2>
-            <p>Pay your bills online</p>
+            <h2>Zadat platbu</h2>
+            {% with errors = get_flashed_messages(category_filter=["notEnoughMoneyTransfer"]) %}
+            {% if errors: %}
+                {% for msg in errors %}
+                    <span>{{ msg }}</span>
+                {% endfor %}
+            {%else:%}
+            <form action="/sendMoney" method="post">
+                <input type="number" name="ucet" placeholder="Číslo účtu" id="amount-input">
+                <input type="number" name="castka" placeholder="Částka" id="amount-input" min="1" max="1000000">
+                <br>
+                <select name="mena">
+                    <option {%if session['accountType'] == "CZK"%}  selected  {% endif %} value="CZK" >CZK</option>
+                    <option {%if session['accountType'] == "EUR"%}  selected  {% endif %} value="EUR" >EUR</option>
+                    <option {%if session['accountType'] == "USD"%}  selected  {% endif %} value="USD">USD</option>
+                    <option {%if session['accountType'] == "RUB"%}  selected  {% endif %} value="RUB">RUB</option>
+                </select>
+                <button id="deposit-button">Poslat</button>
+            </form>
+            {%endif%}
+            {% endwith %}
+            {% for mesg in get_flashed_messages(category_filter=['notOtherAcc']) %}
+            <span>{{ mesg }}</span>
+            {% endfor %}
         </div>
 
         <!-- Box 5 -->
         <div class="box">
-            <h2>Investments</h2>
-            <p>Manage your investments</p>
+            <h2>Přepnutí účtu</h2>
+            <h3>Vyberte z vašich účtů</h3>
+            {%if data=="Žádné další účty":%}
+            <span>{{data}}</span>
+            {%else:%}
+            <form method="post" action="/switchAccount">
+                <select name="account">
+                    {% for item in data %}
+                    <option value="{{ item[2]}}">{{item[2]}}</option>
+                    {% endfor %}
+                </select>
+                <input id="send-button" type="submit" value="Přepnout účet">
+            </form>
+            {% endif %}
+
         </div>
 
         <!-- Box 6 -->
         <div class="box">
-            <h2>Vytvoření nového účtu</h2>
-            <p>Zvolte měnu účtu:</p>
+            <h2>Vytvořit účet</h2>
+            <h3>Zvolte měnu účtu</h3>
             <form method="post" action="/createNewAccount">
                 <select name="mena">
-                    <option value="eur">Euro</option>
-                    <option value="usd">Dolars</option>
-                    <option value="rub">Rubl</option>
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                    <option value="RUB">RUB</option>
                 </select>
-                <input id="send-button" type="submit" value="Ověřit">
+                <input id="send-button" type="submit" value="Vytvořit účet">
             </form>
-            
+            {% for mesg in get_flashed_messages(category_filter=['accountExists']) %}
+            <span>{{ mesg }}</span>
+            {% endfor %}
         </div>
+
     </div>
 </body>
 

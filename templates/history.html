@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Bank App - Transaction History</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Top menu */
+        #top-menu {
+            background-color: #0070c0;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        #top-menu a {
+            text-decoration: none;
+            color: white;
+        }
+
+        #top-menu p {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* Main container */
+        #main-container {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Transaction history table */
+        #transaction-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        #transaction-table th,
+        #transaction-table td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        #transaction-table th {
+            background-color: #0070c0;
+            color: #fff;
+            font-weight: bold;
+        }
+        body {
+  margin: 0;
+  padding: 20px;
+  font-family: sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+button {
+            background-color: #000000;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table td,
+.table th {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  text-align: center;
+  font-size: 16px;
+}
+
+.table th {
+  background-color: #0070c0;
+  color: #ffffff;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #d1e8f5;
+}
+
+/*responsive*/
+
+@media (max-width: 500px) {
+  .table thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+  .table tr {
+    margin-bottom: 15px;
+  }
+  .table td {
+    padding-left: 50%;
+    text-align: left;
+    position: relative;
+  }
+  .table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    width: 50%;
+    padding-left: 15px;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: left;
+  }
+}
+
+
+        /* Responsive layout */
+        @media only screen and (max-width: 768px) {
+            #top-menu {
+                padding: 10px;
+            }
+
+            #transaction-table th,
+            #transaction-table td {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top menu -->
+    <div id="top-menu">
+        <a href="/home"><button id="deposit-button">Zpět</button></a>
+        <p>Přehled transakcí</p>
+    </div>
+
+    <!-- Main container -->
+    <div id="main-container">
+        <!-- Transaction history table -->
+        <!DOCTYPE html>
+        <html>
+
+        <head>
+            <title>Responsive Table</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <!-- 	<link rel="stylesheet" href="assets/css/style.css"> -->
+        </head>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Typ platby</th>
+                    <th>Odchozí účet</th>
+                    <th>Příchozí účet</th>
+                    <th>Částka</th>
+                    <th>Datum</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in data %}
+                <tr {% if item[3]=="Výběr hotovosti" or item[3]=="Odchozí platba" : %}
+                    style="background-color: rgb(239, 84, 84);" {%else:%} style="background-color: rgb(94, 239, 84);" {%
+                    endif %}>
+                    <td data-label="Typ platby">{{item[3]}}</td>
+                    {%if item[3]=="Příchozí platba":%}
+                    <td data-label="Odchozí účet">{{item[2]}}</td>
+                    <td data-label="Příchozí účet">{{item[1]}}</td>
+                    {%else:%}
+                    <td data-label="Odchozí účet">{{item[1]}}</td>
+                    <td data-label="Příchozí účet">{{item[2]}}</td>
+                    {%endif%}
+                    <td data-label="Částka">{{'%0.2f'| format(item[4]|float)}}{{" " + session['accountType']}}</td>
+                    <td data-label="Datum">{{item[5]}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </tbody>
+        </table>
+
+</body>
+
+</html>
+</div>
+</body>
+
+</html>
