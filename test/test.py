@@ -1,15 +1,138 @@
 import unittest
 from app import verifyUser
 from flask import Flask, session
-from app import createAccount, send_verification,app, current_course,ver,switchAccount,home,createNewAccount,showHistory, addMoney,withdrawMoney
+from app import createAccount, send_verification,app, current_course,ver,switchAccount,home,createNewAccount,showHistory, addMoney,withdrawMoney,login,transferMoney,sendMoney
 from datetime import datetime
 from unittest.mock import patch
 from flaskext.mysql import MySQL
 from unittest.mock import MagicMock
 
 
+class TestSendMoney(unittest.TestCase):
+    def setUp(self):
+        app = Flask(__name__)
+        app.config['TESTING'] = True
+        app.config['MYSQL_DATABASE_HOST'] = 'eu-cdbr-west-03.cleardb.net'
+        app.config['MYSQL_DATABASE_USER'] = 'bea529bd809544'
+        app.config['MYSQL_DATABASE_PASSWORD'] = 'a0538c80'
+        app.config['MYSQL_DATABASE_DB'] = 'heroku_c2218c80d1e84ad'
+        mysql = MySQL()
+        mysql.init_app(app)
+        self.app = app.test_client()
+        self.conn = mysql.connect()
+        self.cursor = self.conn.cursor()
 
+    def  tearDown(self):
+        self.cursor.close()
+        self.conn.close()
+    
+    def test_accNotExists(self):
+        with app.test_request_context('/sendMoney', method='POST',data={'ucet' : '69'}):
+            response = sendMoney()
+            self.assertNotIn(bytes('Číslo účtu neexistuje','utf-8'), response.data)
 
+    def test_sendMoneyToSameAcc(self):
+        with app.test_request_context('/sendMoney', method='POST',data={'ucet' : '113', 'castka':'400','mena':'CZK'}):
+            self.cursor.execute("UPDATE ucty SET zustatek= 500.00 WHERE cislo = 111")
+            self.conn.commit()
+            self.cursor.execute("UPDATE ucty SET zustatek= 500.00 WHERE cislo = 113")
+            self.conn.commit()
+
+            session['accountNum'] = 111
+            session['accountType'] = 'CZK'
+            response = sendMoney()
+
+            self.cursor.execute("SELECT zustatek FROM ucty WHERE cislo = 113")
+            result = self.cursor.fetchall()
+            self.assertEqual(result[0][0], 900.00)
+            self.assertEqual(session['balance'], 100)
+
+            self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 111")
+            self.conn.commit()
+            self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 113")
+            self.conn.commit()
+
+    def test_UsdToEurInEur(self):
+        with app.test_request_context('/sendMoney', method='POST',data={'ucet' : '112', 'castka':'10','mena':'EUR'}):
+            self.cursor.execute("UPDATE ucty SET zustatek= 500.00 WHERE cislo = 112")
+            self.conn.commit()
+            self.cursor.execute("UPDATE ucty SET zustatek= 1000.00 WHERE cislo = 114")
+            self.conn.commit()
+            self.cursor.execute("UPDATE ucty SET zustatek= 500.00 WHERE cislo = 115")
+            self.conn.commit()
+
+            session['accountNum'] = 114
+            session['accountType'] = 'USD'
+            session['userId'] = 112 
+            response = sendMoney()
+
+            self.cursor.execute("SELECT zustatek FROM ucty WHERE cislo = 115")
+            result = self.cursor.fetchall()
+            self.assertEqual(result[0][0], 490.00)
+
+            self.cursor.execute("SELECT zustatek FROM ucty WHERE cislo = 112")
+            result = self.cursor.fetchall()
+            self.assertEqual(result[0][0], 510.00)
+
+            self.cursor.execute("SELECT zustatek FROM ucty WHERE cislo = 114")
+            result = self.cursor.fetchall()
+            self.assertEqual(result[0][0], 1000.00)
+
+            self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 112")
+            self.conn.commit()
+            self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 114")
+            self.conn.commit()
+            self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 115")
+            self.conn.commit()
+
+    def test_UsdToEurInUsd(self):
+        with app.test_request_context('/sendMoney', method='POST',data={'ucet' : '112', 'castka':'10','mena':'USD'}):
+            self.cursor.execute("UPDATE ucty SET zustatek= 500.00 WHERE cislo = 112")
+            self.conn.commit()
+            self.cursor.execute("UPDATE ucty SET zustatek= 500.00 WHERE cislo = 114")
+            self.conn.commit()
+
+            session['accountNum'] = 114
+            session['accountType'] = 'USD'
+            response = sendMoney()
+
+            date, kurz = current_course('EUR','USD')
+
+            self.cursor.execute("SELECT zustatek FROM ucty WHERE cislo = 112")
+            result = self.cursor.fetchall()
+
+            celkem = 500+kurz*10.00
+
+            self.assertEqual(result[0][0], float("%.2f" % celkem))
+            self.assertEqual(session['balance'], 490)
+
+            self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 112")
+            self.conn.commit()
+            self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 114")
+            self.conn.commit()
+
+    def test_sendMoneyToSameAccNotEnoughMoney(self):
+        with app.test_request_context('/sendMoney', method='POST',data={'ucet' : '113', 'castka':'400','mena':'CZK'}):
+            self.cursor.execute("UPDATE ucty SET zustatek= 400.00 WHERE cislo = 111")
+            self.conn.commit()
+            self.cursor.execute("UPDATE ucty SET zustatek= 500.00 WHERE cislo = 113")
+            self.conn.commit()
+
+            session['accountNum'] = 111
+            session['accountType'] = 'CZK'
+            response = sendMoney()
+
+            self.cursor.execute("SELECT zustatek FROM ucty WHERE cislo = 113")
+            result = self.cursor.fetchall()
+            self.assertEqual(result[0][0], 500.00)
+            self.cursor.execute("SELECT zustatek FROM ucty WHERE cislo = 111")
+            result = self.cursor.fetchall()
+            self.assertEqual(result[0][0], 400.00)
+
+            self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 111")
+            self.conn.commit()
+            self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 113")
+            self.conn.commit()
 
 class TestWithdrawMoney(unittest.TestCase):
     def setUp(self):
@@ -43,6 +166,64 @@ class TestWithdrawMoney(unittest.TestCase):
             self.assertEqual(session['balance'], 250.00)
 
             self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 111")
+            self.conn.commit()
+
+    def test_withdrawNotCzkCzkMoney(self):
+        with app.test_request_context('/withdraw', method='POST'):
+            self.cursor.execute("UPDATE ucty SET zustatek= 500.00 WHERE cislo = 112")
+            self.conn.commit()
+
+            session['accountNum'] = 112
+            session['accountType'] = 'EUR'
+            form = {'mena': 'CZK', 'vyber': '250.0'}
+
+            date, kurz = current_course('EUR','EUR')
+            newKurz = 1/kurz
+            celkem = 500 - (float(newKurz)*250)
+
+            withdrawMoney(form)
+
+            self.assertEqual(float("%.2f" % session['balance']), float("%.2f" % celkem))
+
+            self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 112")
+            self.conn.commit()
+
+    def test_withdrawCzkNotCzkMoney(self):
+        with app.test_request_context('/withdraw', method='POST'):
+            self.cursor.execute("UPDATE ucty SET zustatek= 500.00 WHERE cislo = 111")
+            self.conn.commit()
+
+            session['accountNum'] = 111
+            session['accountType'] = 'CZK'
+            form = {'mena': 'EUR', 'vyber': '10.0'}
+
+            date, kurz = current_course('EUR','EUR')
+            celkem = 500 - (float(kurz)*10)
+
+            withdrawMoney(form)
+
+            self.assertEqual(float("%.2f" % session['balance']), float("%.2f" % celkem))
+
+            self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 111")
+            self.conn.commit()
+
+    def test_withdrawNotCzkNotCzkMoney(self):
+        with app.test_request_context('/withdraw', method='POST'):
+            self.cursor.execute("UPDATE ucty SET zustatek= 500.00 WHERE cislo = 112")
+            self.conn.commit()
+
+            session['accountNum'] = 112
+            session['accountType'] = 'EUR'
+            form = {'mena': 'USD', 'vyber': '10.0'}
+
+            date, kurz = current_course('EUR','USD')
+            celkem = 500 - (float(kurz)*10)
+
+            withdrawMoney(form)
+
+            self.assertEqual(float("%.2f" % session['balance']), float("%.2f" % celkem))
+
+            self.cursor.execute("UPDATE ucty SET zustatek= 0.00 WHERE cislo = 112")
             self.conn.commit()
 
 class TestShowHistoryRoute(unittest.TestCase):
@@ -171,6 +352,17 @@ class TestHome(unittest.TestCase):
             self.assertIn("<title>Bank App</title>", response)
             self.assertNotIn("Žádné další účty", response)
 
+class TestLoginAndVefify(unittest.TestCase):
+    def test_goodCred(self):
+        with app.test_request_context('/', method='POST',data={'login-username': 'BennyPear@seznam.cz', 'login-password': 'test'}):
+                response = login()
+                self.assertEqual(response.location, '/home')
+
+    def test_wrongCred(self):
+        with app.test_request_context('/', method='POST',data={'login-username': 'BennyPear@seznam.cz', 'login-password': '1234'}):
+                response = login()
+                self.assertEqual(response.location, '/')
+                
 class TestCreateNewBankAcc(unittest.TestCase):
     def test_newAccountExist(self):
         with app.test_request_context('/createNewAccount', method='POST',data={'mena': 'USD'}):
@@ -297,7 +489,7 @@ class TestCreateAccount(unittest.TestCase):
 
         self.cursor.execute("DELETE FROM ucty WHERE cislo = 10")
         self.conn.commit()
-#python -m pytest name
+
 class TestVerifyUser(unittest.TestCase): 
     def test_correct_password(self):
         # Testování správného hesla.
