@@ -356,7 +356,7 @@ class TestLoginAndVefify(unittest.TestCase):
     def test_goodCred(self):
         with app.test_request_context('/', method='POST',data={'login-username': 'BennyPear@seznam.cz', 'login-password': 'test'}):
                 response = login()
-                self.assertEqual(response.location, '/home')
+                self.assertEqual(response.location, '/verification')
 
     def test_wrongCred(self):
         with app.test_request_context('/', method='POST',data={'login-username': 'BennyPear@seznam.cz', 'login-password': '1234'}):
