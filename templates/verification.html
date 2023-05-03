@@ -1,25 +1,132 @@
+<!DOCTYPE html>
 <html>
 
 <head>
-    <link rel="stylesheet" href="/static/style.css" type="text/css"> <!--Odkaz na vlastní css styly-->
-</head>
-<div class="container">
-    <div class="logo">Ověřovací formulář</div>
-    <div class="login-item">
-        <form action="" method="post" class="form form-login">
-            <div class="form-field">
-                <label class="lock" for="login-password"><span class="hidden">Ověřovací kod</span></label>
-                <input name="login-code" type="text" class="form-input" placeholder="Ověřovací kod" required>
-            </div>
+    <title>Bank App - Verification</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
 
-            <div class="form-field">
-                <input type="submit" value="Ověřit">
-            </div>
-        </form>
-        {% for mesg in get_flashed_messages() %}
-        <h1>{{ mesg }}</h1>
-        {% endfor %}
+        /* Top menu */
+        #top-menu {
+            background-color: #0070c0;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        #top-menu a {
+            text-decoration: none;
+            color: white;
+        }
+
+        #top-menu p {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* Main container */
+        #main-container {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Login box */
+        .box {
+            flex-basis: 30%;
+            margin: 10px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px #ccc;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+
+        .box h2 {
+            margin-top: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .box p {
+            margin-bottom: 0;
+            font-size: 16px;
+        }
+
+        .box input[type="text"],
+        .box input[type="password"] {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            width: 90%;
+            margin-bottom: 20px;
+        }
+
+        .box button {
+            background-color: #000000;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+        }
+
+        .box button:hover {
+            background-color: grey;
+        }
+
+        /* Error message */
+        .error {
+            color: red;
+            margin-bottom: 10px;
+        }
+
+        /* Responsive layout */
+        @media only screen and (max-width: 768px) {
+            #top-menu {
+                padding: 10px;
+            }
+            .box {
+                flex-basis: 70%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top menu -->
+    <div id="top-menu">
+        <p>Přihlásit se do Bank App</p>
     </div>
-</div>
+
+    <!-- Main container -->
+    <div id="main-container">
+        <!-- Login box -->
+        <div class="box">
+            <h2>Přihlášení</h2>
+            <form action="/verification" method="post">
+                <input type="text" name="login-code" placeholder="Zadejte oveřovací kod">
+                {% for mesg in get_flashed_messages(category_filter=['wrongCode']) %}
+                <h1>{{ mesg }}</h1>
+                {% endfor %}
+                <button>Ověřit kod</button>
+            </form>
+        </div>
+    </div>
+</body>
 
 </html>
