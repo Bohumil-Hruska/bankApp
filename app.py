@@ -496,8 +496,8 @@ def login():
     email = request.form['login-username']
     password = request.form['login-password']
     if(verifyUser(email,password)):
-        #code = send_verification(email)
-        #session['code'] = code
+        code = send_verification(email)
+        session['code'] = code
         return redirect(url_for("home"))
     else:
         flash("Špatné přihlašovací údaje!",'badCred')
