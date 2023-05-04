@@ -473,7 +473,7 @@ def transferMoney(form):
                     conn = mysql.connect()
                     cursor = conn.cursor()
                     sql = ("INSERT INTO platby (ID_odesilajici,ID_prijemce,typ_transakce,castka,datum) VALUES (%s,%s,%s,%s,%s)")
-                    val = (data[0][0],session['accountNum'],'Příchozí platba',moneyToSend,datetime.now().strftime("%Y-%m-%d %H:%M"))
+                    val = (data[0][0],row[0][0],'Příchozí platba',moneyToSend,datetime.now().strftime("%Y-%m-%d %H:%M"))
                     cursor.execute(sql,val)
                     conn.commit()
                     cursor.close()
