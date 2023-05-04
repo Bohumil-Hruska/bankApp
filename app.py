@@ -415,6 +415,8 @@ def transferMoney(form):
 
 
         elif session['accountType'] != form['mena'] and form['mena'] != data[0][2] and data[0][2] != session['accountType'] or session['accountType'] != form['mena'] and session['accountType']== data[0][2]: #USD ucet, EUR platba, PLN ucet
+            conn = mysql.connect()
+            cursor = conn.cursor()
             sql = ("SELECT cislo,zustatek FROM ucty WHERE mena = %s AND ID_uzivatele = %s")
             val = (form['mena'], session['userId'])
             cursor.execute(sql,val)
@@ -441,6 +443,8 @@ def transferMoney(form):
                     zustatek = float(row[0][1])-float(form['castka'])
 
                 if zustatek > 0:
+                    conn = mysql.connect()
+                    cursor = conn.cursor()
                     sql = ("UPDATE ucty SET zustatek = %s WHERE cislo = %s")
                     val = (zustatek, row[0][0])
                     cursor.execute(sql,val)
@@ -448,7 +452,8 @@ def transferMoney(form):
                     cursor.close()
                     conn.close()
 
-
+                    conn = mysql.connect()
+                    cursor = conn.cursor()
                     sql = ("UPDATE ucty SET zustatek = %s WHERE cislo = %s")
                     val = (data[0][1]+moneyToSend, data[0][0])
                     cursor.execute(sql,val)
@@ -456,7 +461,8 @@ def transferMoney(form):
                     cursor.close()
                     conn.close()
 
-
+                    conn = mysql.connect()
+                    cursor = conn.cursor()
                     sql = ("INSERT INTO platby (ID_odesilajici,ID_prijemce,typ_transakce,castka,datum) VALUES (%s,%s,%s,%s,%s)")
                     val = (row[0][0],data[0][0],'Odchozí platba',float(form['castka']),datetime.now().strftime("%Y-%m-%d %H:%M"))
                     cursor.execute(sql,val)
@@ -464,7 +470,8 @@ def transferMoney(form):
                     cursor.close()
                     conn.close()
 
-
+                    conn = mysql.connect()
+                    cursor = conn.cursor()
                     sql = ("INSERT INTO platby (ID_odesilajici,ID_prijemce,typ_transakce,castka,datum) VALUES (%s,%s,%s,%s,%s)")
                     val = (data[0][0],session['accountNum'],'Příchozí platba',moneyToSend,datetime.now().strftime("%Y-%m-%d %H:%M"))
                     cursor.execute(sql,val)
