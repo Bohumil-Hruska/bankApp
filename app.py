@@ -8,21 +8,41 @@ import hashlib
 from email.message import EmailMessage
 import urllib
 import re
+import json
 
 def current_course(currency1, currency2):#otestovano
-    url = 'https://www.cnb.cz/cs/financni_trhy/devizovy_trh/kurzy_devizoveho_trhu/denni_kurz.txt?date={0:dd\.MM\.yyyy}'
-    req = urllib.request.Request(url)
-    req.add_header('x-api-key', '45TzSCfYbT9SgA28vSO9rdxQHO3YKML6M4Qi045d')
-    response = urllib.request.urlopen(req)
-    data = str(response.read()).replace("\\n", "\n")
-    if currency1 == currency2:
-        kurs1 = float(re.findall(f'{currency1}{{1}}[|]{{1}}[\\d,]*', data)[0].split("|")[1].replace(",", "."))
-        date = re.findall(r'\d{2}[.]\d{2}[.]\d{4}', data)[0]
-        return date, kurs1
-    kurs1 = float(re.findall(f'{currency1}{{1}}[|]{{1}}[\\d,]*', data)[0].split("|")[1].replace(",", "."))
-    kurs2 = float(re.findall(f'{currency2}{{1}}[|]{{1}}[\\d,]*', data)[0].split("|")[1].replace(",", "."))
-    date = re.findall(r'\d{2}[.]\d{2}[.]\d{4}', data)[0]
-    return date, kurs2/kurs1
+    try:
+        with urllib.request.urlopen('https://www.cnb.cz/cs/financni_trhy/devizovy_trh/kurzy_devizoveho_trhu/denni_kurz.txt?date={0:dd\.MM\.yyyy}') as response:
+            if response.status == 200:
+                url = 'https://www.cnb.cz/cs/financni_trhy/devizovy_trh/kurzy_devizoveho_trhu/denni_kurz.txt?date={0:dd\.MM\.yyyy}'
+                req = urllib.request.Request(url)
+                req.add_header('x-api-key', '45TzSCfYbT9SgA28vSO9rdxQHO3YKML6M4Qi045d')
+                response = urllib.request.urlopen(req)
+                data = str(response.read()).replace("\\n", "\n")
+                with open('kursy.json', 'w') as f:
+                    json.dump(data, f)
+                if currency1 == currency2:
+                    kurs1 = float(re.findall(f'{currency1}{{1}}[|]{{1}}[\\d,]*', data)[0].split("|")[1].replace(",", "."))
+                    date = re.findall(r'\d{2}[.]\d{2}[.]\d{4}', data)[0]
+                    return date, kurs1
+                kurs1 = float(re.findall(f'{currency1}{{1}}[|]{{1}}[\\d,]*', data)[0].split("|")[1].replace(",", "."))
+                kurs2 = float(re.findall(f'{currency2}{{1}}[|]{{1}}[\\d,]*', data)[0].split("|")[1].replace(",", "."))
+                date = re.findall(r'\d{2}[.]\d{2}[.]\d{4}', data)[0]
+                return date, kurs2/kurs1
+            
+    except urllib.error.HTTPError  as e:
+        if e.code != 200:
+            file = open('kursy.json')
+            data = json.load(file)
+            if currency1 == currency2:
+                    kurs1 = float(re.findall(f'{currency1}{{1}}[|]{{1}}[\\d,]*', data)[0].split("|")[1].replace(",", "."))
+                    date = re.findall(r'\d{2}[.]\d{2}[.]\d{4}', data)[0]
+                    return date, kurs1
+            kurs1 = float(re.findall(f'{currency1}{{1}}[|]{{1}}[\\d,]*', data)[0].split("|")[1].replace(",", "."))
+            kurs2 = float(re.findall(f'{currency2}{{1}}[|]{{1}}[\\d,]*', data)[0].split("|")[1].replace(",", "."))
+            date = re.findall(r'\d{2}[.]\d{2}[.]\d{4}', data)[0]
+            file.close()
+            return date, kurs2/kurs1
 
 def get_data(day, month, year):
     today = day + "." + month + "." + year
@@ -599,4 +619,4 @@ def index():
     return render_template('login.html')
 
 if __name__ == '__main__':
-    app.run()    
+    app.run()
