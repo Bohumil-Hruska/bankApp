@@ -349,7 +349,7 @@ def transferMoney(form):
                 flash(msg,'notOtherAcc')
             else:
                 flash('Nemáte dostatek financi na provedení platby, přidejte prostředky pro platbu nebo zvolte jiný účet s dostatkem peněz!','notEnoughMoneyTransfer')
-        elif session['accountType'] != form['mena'] and form['mena'] == data[0][2]:
+        elif session['accountType'] != form['mena'] and form['mena'] == data[0][2] or session['accountType'] != form['mena'] and session['accountType']== data[0][2]:
             conn = mysql.connect()
             cursor = conn.cursor()
             sql = ("SELECT cislo,zustatek FROM ucty WHERE mena = %s AND ID_uzivatele = %s")
@@ -410,8 +410,7 @@ def transferMoney(form):
 
                     msg = "Platba byla provedena z účtu: " + str(row[0][0]) + " " + str(form['mena'])
                     flash(msg,'notOtherAcc')
-                else:
-                    flash('Nemáte dostatek financi na vedlejším účtě na provedení platby, přidejte prostředky pro platbu nebo zvolte jiný účet s dostatkem peněz!','notEnoughMoneyTransfer')
+                
             
 
 
@@ -478,8 +477,8 @@ def transferMoney(form):
                     flash(msg,'notOtherAcc')
                 else:
                     flash('Nemáte dostatek financi na vedlejším účtě na provedení platby, přidejte prostředky pro platbu nebo zvolte jiný účet s dostatkem peněz!','notEnoughMoneyTransfer')
-
-    
+        else:
+            flash('Pokud chcete posílat v této měně, zvolte jiný účet','notEnoughMoneyTransfer')
     
 
 app = Flask(__name__)
