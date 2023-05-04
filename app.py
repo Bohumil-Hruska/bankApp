@@ -349,7 +349,7 @@ def transferMoney(form):
                 flash(msg,'notOtherAcc')
             else:
                 flash('Nemáte dostatek financi na provedení platby, přidejte prostředky pro platbu nebo zvolte jiný účet s dostatkem peněz!','notEnoughMoneyTransfer')
-        elif session['accountType'] != form['mena'] and form['mena'] == data[0][2] or session['accountType'] != form['mena'] and session['accountType']== data[0][2]:
+        elif session['accountType'] != form['mena'] and form['mena'] == data[0][2]:
             conn = mysql.connect()
             cursor = conn.cursor()
             sql = ("SELECT cislo,zustatek FROM ucty WHERE mena = %s AND ID_uzivatele = %s")
@@ -414,7 +414,7 @@ def transferMoney(form):
             
 
 
-        elif session['accountType'] != form['mena'] and form['mena'] != data[0][2] and data[0][2] != session['accountType']: #USD ucet, EUR platba, PLN ucet
+        elif session['accountType'] != form['mena'] and form['mena'] != data[0][2] and data[0][2] != session['accountType'] or session['accountType'] != form['mena'] and session['accountType']== data[0][2]: #USD ucet, EUR platba, PLN ucet
             sql = ("SELECT cislo,zustatek FROM ucty WHERE mena = %s AND ID_uzivatele = %s")
             val = (form['mena'], session['userId'])
             cursor.execute(sql,val)
